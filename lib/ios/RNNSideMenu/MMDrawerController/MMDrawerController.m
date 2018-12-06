@@ -137,8 +137,6 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 -(void)setFrame:(CGRect)frame withLayoutAlpha:(CGFloat)layoutAlpha {
 	[super setFrame:frame];
 	
-	self.overlayView.alpha = layoutAlpha;
-	
 	if (![self.overlayView isDescendantOfView:self]) {
 		[self addSubview:self.overlayView];
 	}
@@ -240,7 +238,7 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 	
 	self.shadow = [[UIView alloc]initWithFrame:CGRectMake(0, 0, UIScreen.mainScreen.bounds.size.width, UIScreen.mainScreen.bounds.size.height)];
 	self.shadow.backgroundColor = [UIColor blackColor];
-	self.shadow.alpha = 0.3;
+	self.shadow.alpha = 0.0;
 	
 	_rightSideEnabled = _leftSideEnabled = YES;
 }
@@ -311,9 +309,7 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 
 -(void)closeDrawerAnimated:(BOOL)animated velocity:(CGFloat)velocity animationOptions:(UIViewAnimationOptions)options completion:(void (^)(BOOL finished))completion{
 	
-	[self.centerContainerView sendSubviewToBack: self.shadow];
 	if(self.isAnimatingDrawer){
-		[[self.centerContainerView.subviews lastObject] removeFromSuperview];
 		if(completion){
 			completion(NO);
 		}
@@ -365,6 +361,7 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 			 if(completion){
 				 completion(finished);
 			 }
+			 [self.centerContainerView sendSubviewToBack: self.shadow];
 		 }];
 	}
 }
@@ -403,7 +400,8 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 			
 			CGFloat distance = ABS(CGRectGetMinX(oldFrame)-newFrame.origin.x);
 			NSTimeInterval duration = MAX(distance/ABS(velocity),MMDrawerMinimumAnimationDuration);
-			
+			[self.centerContainerView addSubview:self.shadow];
+			[self.centerContainerView bringSubviewToFront: self.shadow];
 			[UIView
 			 animateWithDuration:(animated?duration:0.0)
 			 delay:0.0
@@ -425,8 +423,8 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 				 if(completion){
 					 completion(finished);
 				 }
-				 [self.centerContainerView addSubview:self.shadow];
-				 [self.centerContainerView bringSubviewToFront: self.shadow];
+				 //				 [self.centerContainerView addSubview:self.shadow];
+				 //				 [self.centerContainerView bringSubviewToFront: self.shadow];
 			 }];
 		}
 	}
@@ -1172,9 +1170,9 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 			newFrame.origin.y = floor(newFrame.origin.y);
 			self.centerContainerView.frame = newFrame;
 			
-			[self.centerContainerView addSubview:self.centerContainerView.overlayView];
-			[self.centerContainerView bringSubviewToFront:self.centerContainerView.overlayView];
-			self.centerContainerView.overlayView.alpha = percentVisible;
+			[self.centerContainerView addSubview:self.shadow];
+			[self.centerContainerView bringSubviewToFront:self.shadow];
+			self.shadow.alpha = percentVisible * 0.5;
 			
 			break;
 		}
@@ -1264,6 +1262,7 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 }
 
 -(void)updateDrawerVisualStateForDrawerSide:(MMDrawerSide)drawerSide percentVisible:(CGFloat)percentVisible{
+	self.shadow.alpha = percentVisible * 0.5;
 	if(self.drawerVisualState){
 		self.drawerVisualState(self,drawerSide,percentVisible);
 	}
@@ -1565,4 +1564,3 @@ static inline CGFloat originXForDrawerOriginAndTargetOriginOffset(CGFloat origin
 			[self isPointContainedWithinCenterViewContentRect:point]);
 }
 @end
-
